@@ -8,11 +8,99 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>Registrar un nuevo producto</h1>
-    <form method="post"">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button class="btn btn-primary" type="submit">Registrar</button>
-    </form>
+   <div class="conteiner">
+    <div class="col">
+        <div class="row">
+
+            <div class="col-6 mt-4">
+                <h1>Registrar un nuevo producto</h1>
+                <form method="post"">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button class="btn btn-primary" type="submit">Registrar</button>
+                </form>
+            </div>
+            <div class="col-6 mt-4">
+                <h1>Vista de productos</h1>
+                <div class="row" id="productos"></div>
+            </div>
+
+        </div>
+    </div>
+   </div>
+    
+
+    <script>
+        var form = document.getElementById('productoForm');
+        form.addEventListener('submit',function(event){
+        event.preventDefault();
+
+        let formData = FormData(this);
+
+        let jsonData ={};
+        formData.forEach((value,key)=>[key]= value);
+
+        //nombre: peluche pikachu
+
+        //Enviar esta info al end point con post 
+        fetch('/product/api/post',{
+            method:'POST',
+            headers:{
+                'Content- Type':'application/json',
+                'X-CSRFToken':getToken()
+            },
+            body: JSON.stringify(jsonData)
+        }
+        )
+        .then(request => Response.json())
+        .then(data => {
+            document.getElementById('mensaje').innerText = data.mensaje;
+            //cargar los productos
+            cargarProductos();
+
+        })
+        .catch(error =>console.error('Error',error));
+       
+    });
+
+    function getToken(){
+        let cookieValue = null;
+        let cookies = document.cookie.split(';');
+
+        for(let i = 0; i< cookies.length; i++){
+            let cookie = cookies[i].trim();
+            if (cookie.startsWith('csrftoken=')){
+                cookieValue = cookie.substring("csrftoken=".length,cookie.length)
+                break;
+            }
+        }
+        return cookieValue;
+    }
+    
+    </script>
+     <script>
+        //las fucnsiones asincronas de fetch then 
+        function cargarProductos() {
+            //JS se va intentar conectar al end-point
+            fetch('/productos/api/get')
+            .then(response => response.json())
+            .then(data =>{
+                let productosDiv = document.getElementById('productos');
+                //Borrar el contenido
+                productosDiv.innerHTML = "";
+                data.forEach(producto => {
+                    productosDiv.innerHTML +=
+                    `<div class='col-3'><strong>${producto.nombre}</strong> - 
+                    $ ${producto.precio} <br>
+                    <img src="${producto.imagen}" alt="X" width="100"/>
+                    </div>`;
+                });
+            })
+            .catch(error => console.error('Error:',error));
+            
+        }
+        cargarProductos();
+        </script>
+    
 </body>
 </html>

@@ -18,7 +18,7 @@
   </head>
   <body>
     <h1>Lista de Categorias</h1>
-    <div id="categorias"></div>
+    <div id="categorias" class="row-g-3"></div>
     <script>
       function cargarCategorias() {
         fetch("/categorias/api/get")
@@ -29,7 +29,7 @@
             data.forEach((categoria) => {
               categoriasDiv.innerHTML += `
               <div class="row " id="tarjetas">
-                    <div class=" card mb-4 col-3 ">
+                    <div class=" card mb-4 col-md-3 ">
                         <div class="card-body">
                             <p><strong>${categoria.nombre}</strong> -
                             <img src="${categoria.imagen}" alt="X" width="100"/>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestión de Alumnos</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+        
+        <div class="d-flex gap-2 ">
+          
+          <!-- Formulario de Registro -->
+          <div class="card p-4 flex-grow-1">
+            <h4 class="text-center">Registrar alumno</h4>
+            <form id="alumno-form">
+              <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input type="text" class="form-control" id="nombre" required />
+              </div>
+              <div class="mb-3">
+                <label for="apellido" class="form-label">Apellido</label>
+                <input type="text" class="form-control" id="apellido" required />
+              </div>
+              <div class="mb-3">
+                <label for="edad" class="form-label">Edad</label>
+                <input type="number" class="form-control" id="edad" required />
+              </div>
+              <div class="mb-3">
+                <label for="matricula" class="form-label">Matrícula</label>
+                <input type="text" class="form-control" id="matricula" required />
+              </div>
+              <div class="mb-3">
+                <label for="correo" class="form-label">Correo</label>
+                <input type="email" class="form-control" id="correo" required />
+              </div>
+              <input type="hidden" id="alumno-id" />
+              <button type="submit" class="btn btn-primary w-100">Guardar Alumno</button>
+            </form>
+          </div>
+      
+          <!-- Lista de Alumnos -->
+          <div class="flex-grow-1">
+            <h3 class="text-center">Lista de Alumnos</h3>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Apellido</th>
+                  <th>Edad</th>
+                  <th>Matrícula</th>
+                  <th>Correo</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="alumnos-lista"></tbody>
+            </table>
+          </div>
+      
+        </div>
+      </div>
+      
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+      async function obtenerAlumnos() {
+        try {
+          const response = await fetch("/alumnos/api/");
+
+          if (!response.ok) {
+            throw new Error(
+              `Error HTTP: ${response.status} - ${response.statusText}`
+            );
+          }
+
+          const alumnos = await response.json();
+          console.log("Alumnos obtenidos:", alumnos);
+
+          const listaAlumnos = document.getElementById("alumnos-lista");
+          listaAlumnos.innerHTML = "";
+
+          alumnos.forEach((alumno) => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+                <td>${alumno.nombre}</td>
+                <td>${alumno.apellido}</td>
+                <td>${alumno.edad}</td>
+                <td>${alumno.matricula}</td>
+                <td>${alumno.correo}</td>
+                <td>
+                    <button class="btn btn-warning btn-xl" onclick="editarAlumno(${alumno.id})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
+  <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+  <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+</svg></button>
+                    <button class="btn btn-danger btn-xl" onclick="eliminarAlumno(${alumno.id})"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16">
+  <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5M11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47M8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5"/>
+</svg></button>
+                </td>
+            `;
+            listaAlumnos.appendChild(row);
+          });
+        } catch (error) {
+          console.error("Error al obtener los alumnos:", error);
+        }
+      }
+
+      // Función para agregar o actualizar alumno
+      async function guardarAlumno(event) {
+        event.preventDefault();
+
+        const alumnoId = document.getElementById("alumno-id").value;
+        const nombre = document.getElementById("nombre").value;
+        const apellido = document.getElementById("apellido").value;
+        const edad = document.getElementById("edad").value;
+        const matricula = document.getElementById("matricula").value;
+        const correo = document.getElementById("correo").value;
+
+        const data = {
+          nombre: nombre,
+          apellido: apellido,
+          correo: correo,
+          edad: edad,
+          matricula: matricula,
+          correo: correo,
+        };
+
+        try {
+          let url = "/alumnos/api/";
+          let method = "POST";
+
+          if (alumnoId) {
+            url += alumnoId + "/"; // URL para editar
+            method = "PUT";
+          }
+
+          const response = await fetch(url, {
+            method: method,
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+          });
+
+          if (response.ok) {
+            // Limpiar el formulario y obtener los alumnos actualizados
+            document.getElementById("alumno-form").reset();
+            document.getElementById("alumno-id").value = "";
+            obtenerAlumnos();
+            Swal.fire({
+              title: "Guardado correctamente",
+              icon: "success",
+              draggable: true,
+            });
+          } else {
+            console.error("Error al guardar el alumno:", await response.text());
+            Swal.fire({
+              title: "Ocurrio un error al guardar",
+              icon: "error",
+              draggable: true,
+            });
+          }
+        } catch (error) {
+          console.error("Error al guardar el alumno:", error);
+          Swal.fire({
+            title: "Ocurrio un error al guardar",
+            icon: "error",
+            draggable: true,
+          });
+        }
+      }
+
+      // Función para editar alumno
+      function editarAlumno(id) {
+        const alumnoId = id;
+        fetch(`/alumnos/api/${alumnoId}/`)
+          .then((response) => response.json())
+          .then((alumno) => {
+            document.getElementById("alumno-id").value = alumno.id;
+            document.getElementById("nombre").value = alumno.nombre;
+            document.getElementById("apellido").value = alumno.apellido;
+            document.getElementById("edad").value = alumno.edad;
+            document.getElementById("matricula").value = alumno.matricula;
+            document.getElementById("correo").value = alumno.correo;
+          })
+          .catch((error) =>
+            console.error("Error al obtener el alumno:", error)
+          );
+      }
+
+      // Función para eliminar alumno
+      async function eliminarAlumno(id) {
+    try {
+        // Mostrar la alerta antes de eliminar
+        const result = await Swal.fire({
+            title: "¿Estás seguro de eliminar al alumno?",
+            text: "Esta acción no se puede deshacer.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Sí, eliminar!",
+            cancelButtonText: "No, cancelar!",
+            reverseButtons: true,
+        });
+
+        if (result.isConfirmed) {
+            const response = await fetch(`/alumnos/api/${id}/`, {
+                method: "DELETE",
+            });
+
+            if (response.ok) {
+                Swal.fire("Eliminado!", "El alumno ha sido eliminado.", "success");
+                obtenerAlumnos(); // Recargar la lista de alumnos
+            } else {
+                const errorMsg = await response.text();
+                Swal.fire("Error!", `No se pudo eliminar: ${errorMsg}`, "error");
+                console.error("Error al eliminar el alumno:", errorMsg);
+            }
+        } else {
+            Swal.fire("Cancelado", "El alumno no ha sido eliminado.", "error");
+        }
+    } catch (error) {
+        Swal.fire("Error!", "Hubo un problema al conectar con el servidor.", "error");
+        console.error("Error al eliminar el alumno:", error);
+    }
+}
+
+      // Manejar el envío del formulario
+      document
+        .getElementById("alumno-form")
+        .addEventListener("submit", guardarAlumno);
+
+      // Obtener los alumnos al cargar la página
+      window.onload = obtenerAlumnos;
+    </script>
+  </body>
+</html>
